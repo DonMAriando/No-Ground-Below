@@ -1,0 +1,9 @@
+﻿NO GROUND BELOW â€” build local
+=============================
+
+Doble click en JUGAR.bat
+
+Si el audio o el guardado fallan, usa JUGAR-servidor.bat
+y deja esa ventana abierta mientras jugas.
+
+R reinicia Â· Esc pausa Â· V voz Â· M audio

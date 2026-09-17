@@ -1,77 +1,49 @@
 # NO GROUND BELOW
 
-**Prototype 0.1 — physics climbing / “Foddian” game**
+**Demo 0.2 — physics climbing / “Foddian”**
 
 > Subir es opcional. Caer es inevitable.
 
 ## Qué es
 
-NO GROUND BELOW es un juego de escalada física de una sola mecánica: estás atrapado dentro de una cápsula/campana de hierro y tu única herramienta es un ancla unida a una cadena.
+Estás atrapado dentro de una campana de hierro. Tu única herramienta es un ancla unida a una cadena. No hay salto, ni mejoras, ni checkpoints.
 
-No hay salto. No hay doble salto. No hay mejoras. No hay checkpoints en el modo principal.
-
-El jugador aprende a:
-
-- mover el ancla con el mouse;
-- clavarla en superficies válidas;
-- recoger cadena;
-- balancearse;
-- hacer palanca;
-- aprovechar el peso de la cápsula;
-- soltar en el momento exacto;
-- sobrevivir a errores que pueden costar cientos de metros.
-
-La meta es una campana suspendida en la parte superior del mundo.
+Subís haciendo palanca. Caés. Volvés a subir.
 
 ## Ejecutar
 
-No requiere instalación.
+Para jugar en local, abrí la carpeta `dist` y dale doble click a **JUGAR.bat**.
 
-1. Abrí `index.html` en Chrome/Edge/Firefox.
-2. Click en **EMPEZAR A SUBIR**.
-3. Jugá.
-
-Para servirlo localmente:
+También sirve abrir `index.html` en Chrome/Edge/Firefox, o:
 
 ```bash
-python -m http.server 8080
+py -3 -m http.server 8080
 ```
 
-y abrí `http://localhost:8080`.
+y andá a `http://localhost:8080`.
+
+Para regenerar el build: `powershell -File build-dist.ps1`
 
 ## Controles
 
-- **Mover mouse:** posicionar/balancear el ancla.
-- **Mantener click izquierdo:** intentar clavar el ancla cuando toca metal; si ya está clavada, recoger cadena.
-- **Soltar click:** liberar.
-- **R:** reiniciar.
-- **V:** activar/desactivar voz del narrador usando Speech Synthesis del navegador.
-- **M:** audio.
+- **Mouse** — mover el ancla. Si está clavada, balancearte.
+- **Mantener click** — clavar en metal. Acercá el mouse al ancla para recoger cadena.
+- **Soltar** — liberar.
+- **R** — reiniciar · **Esc** — pausa · **V** — voz · **M** — audio
+- **Gamepad** — palanca apunta, gatillo agarra, Start pausa
 
-## Qué incluye el prototipo
+## Qué hay en este build
 
-- física del cuerpo;
-- ancla dinámica;
-- cadena limitada;
-- agarre/release/reel;
-- superficies metálicas;
-- vidrio no agarrable;
-- hielo con rebote y poca fricción;
-- 7 zonas verticales;
-- altura y récord persistente con `localStorage`;
-- narrador reactivo a zonas y caídas;
-- efectos de audio procedurales con WebAudio;
-- final jugable;
-- cero assets externos.
+- palanca y péndulo de verdad (el mouse mueve el peso, no solo el gancho)
+- cadena Verlet, hitstop y cámara que sigue la caída
+- 7 zonas con siluetas: muelle, restos, astillero, ciudad, antenas, hielo, campana
+- vidrio que resbala, hielo que rebota, metal que muerde
+- narrador, logros locales, mejor altura persistente
+- audio ambiental que cambia con la altura
+- menú, pausa, settings, gamepad
 
-## Archivos de diseño
+## Diseño
 
-- `GAME_DESIGN.md`: visión completa del juego.
-- `NARRATOR.md`: personalidad, reglas y banco de frases.
-- `ROADMAP.md`: camino de prototype → demo → Steam/itch build.
-
-## Estado
-
-Este build busca contestar una sola pregunta: **¿es divertido dominar el ancla?**
-
-Antes de agregar arte, historia, leaderboards o contenido, hay que iterar el “feel” de esa mecánica.
+- `GAME_DESIGN.md` — visión
+- `NARRATOR.md` — voz
+- `ROADMAP.md` — prototype → Steam
