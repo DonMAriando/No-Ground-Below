@@ -10,6 +10,10 @@ Estás atrapado dentro de una campana de hierro. Tu única herramienta es un anc
 
 Subís haciendo palanca. Caés. Volvés a subir.
 
+## Jugar
+
+**https://donmariando.github.io/No-Ground-Below/**
+
 ## Ejecutar
 
 Para jugar en local, abrí la carpeta `dist` y dale doble click a **JUGAR.bat**.
