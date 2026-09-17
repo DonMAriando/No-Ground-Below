@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>NO GROUND BELOW — Prototype</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="start" class="overlay">
+    <div class="panel">
+      <div class="eyebrow">PHYSICS CLIMBING PROTOTYPE</div>
+      <h1>NO GROUND BELOW</h1>
+      <p class="tagline">Subir es opcional. Caer es inevitable.</p>
+      <div class="controls">
+        <p><b>Mover mouse</b> — mover y balancear el ancla</p>
+        <p><b>Mantener click izquierdo</b> — clavar / agarrar / recoger cadena</p>
+        <p><b>Soltar click</b> — liberar el ancla</p>
+        <p><b>R</b> — reiniciar · <b>V</b> — voz del narrador · <b>M</b> — audio</p>
+      </div>
+      <button id="play">EMPEZAR A SUBIR</button>
+      <small>Consejo: no intentes “saltar”. Hacé palanca, balanceate y usá el peso.</small>
+    </div>
+  </div>
+
+  <div id="hud">
+    <div><span class="label">ALTURA</span><span id="altitude">0 m</span></div>
+    <div><span class="label">MEJOR</span><span id="best">0 m</span></div>
+    <div><span class="label">ZONA</span><span id="zone">EL FONDO</span></div>
+  </div>
+
+  <div id="narrator"></div>
+  <div id="hint"></div>
+  <div id="win" class="overlay hidden">
+    <div class="panel">
+      <div class="eyebrow">LLEGASTE</div>
+      <h1>NO HABÍA NADA ARRIBA.</h1>
+      <p class="tagline">Pero ahora sabés que podías hacerlo.</p>
+      <p id="winStats"></p>
+      <button id="again">OTRA VEZ</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
