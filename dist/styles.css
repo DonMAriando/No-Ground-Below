@@ -45,13 +45,21 @@ html, body {
   margin: 0; width: 100%; height: 100%; overflow: hidden;
   background: #07090d; color: #eef2f5;
   font-family: Barlow, ui-sans-serif, system-ui, sans-serif;
+  touch-action: none;
+  overscroll-behavior: none;
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
 }
-canvas { display: block; width: 100vw; height: 100vh; cursor: crosshair; }
+canvas {
+  display: block; width: 100vw; height: 100dvh; height: 100vh;
+  cursor: crosshair; touch-action: none;
+}
 
 .overlay {
   position: fixed; inset: 0; display: grid; place-items: center;
   background: radial-gradient(ellipse at 50% 28%, rgba(38,48,64,.42), rgba(4,6,10,.78) 58%, rgba(2,3,5,.9));
-  z-index: 20; padding: 24px;
+  z-index: 20; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  touch-action: auto;
 }
 .overlay.hidden { display: none; }
 
@@ -90,6 +98,7 @@ button {
   background: #e8ecef; color: #0b0e12;
   font-family: Barlow, sans-serif; font-weight: 800; letter-spacing: .1em;
   padding: 14px 20px; cursor: pointer;
+  min-height: 44px; touch-action: manipulation;
 }
 button:hover { transform: translateY(-1px); filter: brightness(1.05); }
 button.ghost {
@@ -106,7 +115,9 @@ body.playing #hud { opacity: 1; }
 body.playing #hint { opacity: .62; }
 
 #hud {
-  position: fixed; left: 20px; top: 18px; z-index: 5; display: flex; gap: 22px;
+  position: fixed; left: max(20px, env(safe-area-inset-left));
+  top: max(18px, env(safe-area-inset-top));
+  z-index: 5; display: flex; gap: 22px;
   pointer-events: none; font-variant-numeric: tabular-nums;
 }
 #hud > div { min-width: 92px; }
@@ -126,10 +137,22 @@ body.playing #hint { opacity: .62; }
 #narrator.show { opacity: .94; }
 
 #hint {
-  position: fixed; right: 18px; bottom: 18px; z-index: 5; padding: 8px 11px;
+  position: fixed; right: max(18px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 5; padding: 8px 11px;
   background: rgba(0,0,0,.38); border: 1px solid rgba(255,255,255,.08);
   font-size: 12px; pointer-events: none; letter-spacing: .04em;
 }
+
+.fab {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  z-index: 15; width: 44px; height: 44px; min-height: 44px; padding: 0;
+  letter-spacing: 0; font-size: 13px; font-weight: 800;
+  touch-action: manipulation;
+}
+.touch-controls { display: none; }
 
 #fallBanner {
   position: fixed; left: 50%; top: 22%; transform: translateX(-50%);
@@ -161,9 +184,19 @@ body.playing #hint { opacity: .62; }
 #toast .d { display: block; margin-top: 2px; font-size: 13px; opacity: .7; }
 
 @media (max-width: 700px) {
-  #hud { gap: 10px; left: 10px; top: 10px; }
-  #hud > div { min-width: 70px; }
-  .panel { padding: 26px 22px; }
+  #hud { gap: 10px; left: max(10px, env(safe-area-inset-left)); top: max(10px, env(safe-area-inset-top)); }
+  #hud > div { min-width: 64px; }
+  .panel { padding: 22px 18px; }
+  h1 { font-size: clamp(36px, 14vw, 64px); }
+  .tagline { font-size: 18px; margin: 12px 0 18px; }
+  .controls p { font-size: 13px; }
   button.ghost { margin-left: 0; margin-top: 10px; }
+  #narrator { bottom: max(86px, calc(env(safe-area-inset-bottom) + 64px)); }
+  #hint { max-width: 58vw; font-size: 11px; }
+  #toast { top: max(58px, calc(env(safe-area-inset-top) + 48px)); }
 }
+
+body.mobile .desktop-controls { display: none; }
+body.mobile .touch-controls { display: block; }
+body.mobile canvas { cursor: none; }
 

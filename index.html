@@ -2,7 +2,10 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="description" content="Subir es opcional. Caer es inevitable. Un juego de escalada física con un ancla, una cadena y el peso de una campana." />
   <title>NO GROUND BELOW</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -19,11 +22,16 @@
       <div class="eyebrow">UNA HERRAMIENTA · UN PESO · UNA CAMPANA</div>
       <h1>NO<br>GROUND<br>BELOW</h1>
       <p class="tagline">Subir es opcional. Caer es inevitable.</p>
-      <div class="controls">
+      <div class="controls desktop-controls">
         <p><b>Mouse</b> — mover el ancla · al estar clavada, balancearte</p>
         <p><b>Mantener click</b> — clavar en metal · acercar el mouse al ancla para recoger</p>
         <p><b>Soltar</b> — liberar · <b>R</b> reiniciar · <b>Esc</b> pausa</p>
         <p><b>Gamepad</b> — palanca apunta · gatillo agarra</p>
+      </div>
+      <div class="controls touch-controls">
+        <p><b>El dedo</b> — el ancla te sigue</p>
+        <p><b>Mantener</b> — clavar en metal · acercar el dedo al ancla para recoger</p>
+        <p><b>Soltar</b> — liberar</p>
       </div>
       <button id="play">EMPEZAR A SUBIR</button>
       <small>Estás dentro de una campana de hierro. El ancla es tu única herramienta. No intentes saltar: hacé palanca y usá el peso.</small>
@@ -46,6 +54,8 @@
       <small id="pauseStats"></small>
     </div>
   </div>
+
+  <button type="button" id="pauseBtn" class="fab hidden" aria-label="Pausa">II</button>
 
   <div id="hud">
     <div><span class="label">ALTURA</span><span id="altitude">0 m</span></div>

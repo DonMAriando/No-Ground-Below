@@ -26,6 +26,7 @@ const ui = {
   optAudio: document.getElementById("optAudio"),
   optVoice: document.getElementById("optVoice"),
   optShake: document.getElementById("optShake"),
+  pauseBtn: document.getElementById("pauseBtn"),
 };
 
 const TAU = Math.PI * 2;
@@ -207,7 +208,7 @@ function reset() {
   player.x = 210; player.y = START_Y; player.vx = player.vy = 0; player.rot = player.vr = 0;
   anchor.x = 300; anchor.y = START_Y - 40; anchor.vx = anchor.vy = 0;
   anchor.attached = false; anchor.surface = null; anchor.rope = 105; anchor.rot = 0;
-  camY = START_Y - H * .65; camZoom = 1; won = false; elapsed = 0;
+  camY = START_Y - viewH() * .65; camZoom = 1; won = false; elapsed = 0;
   maxAltThisRun = 0; biggestFall = 0; grabs = 0; recoveries = 0;
   firstGrab = firstSlip = firstBigFall = false; wasFalling = false; fallStartAlt = 0;
   particles.length = 0; resetChain();
@@ -217,13 +218,37 @@ function reset() {
 }
 
 function resize() {
-  W = innerWidth; H = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2);
+  const vv = window.visualViewport;
+  W = Math.max(1, Math.round(vv ? vv.width : innerWidth));
+  H = Math.max(1, Math.round(vv ? vv.height : innerHeight));
+  dpr = Math.min(devicePixelRatio || 1, 2);
   canvas.width = Math.floor(W * dpr); canvas.height = Math.floor(H * dpr);
   canvas.style.width = W + "px"; canvas.style.height = H + "px";
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  syncChrome();
 }
-addEventListener("resize", resize); resize();
+addEventListener("resize", resize);
+if (window.visualViewport) {
+  visualViewport.addEventListener("resize", resize);
+  visualViewport.addEventListener("scroll", resize);
+}
+resize();
 
+function isMobileView() {
+  return W <= 820 || matchMedia("(pointer: coarse)").matches || matchMedia("(hover: none)").matches;
+}
+function cameraScale() {
+  const fit = Math.min(1, W / WORLD_W);
+  if (isMobileView()) return fit;
+  return fit * (started ? camZoom : 1);
+}
+function viewH() {
+  return H / Math.max(0.05, cameraScale());
+}
+function screenToWorld(sx, sy) {
+  const s = cameraScale();
+  return { x: (sx - W * .5) / s + WORLD_W * .5, y: sy / s + camY };
+}
 function altitude(y = player.y) {
   return Math.max(0, Math.round((START_Y - y) / PX_PER_M));
 }
@@ -232,23 +257,44 @@ function currentZone(a = altitude()) {
 }
 function worldMouse() {
   if (padAim.active) return { x: player.x + padAim.x, y: player.y + padAim.y };
-  return { x: mouse.x + (WORLD_W - W) * .5, y: mouse.y + camY };
+  return screenToWorld(mouse.x, mouse.y);
+}
+function syncChrome() {
+  const mobile = isMobileView();
+  document.body.classList.toggle("mobile", mobile);
+  if (ui.pauseBtn) ui.pauseBtn.classList.toggle("hidden", !started || won || paused);
 }
 
 function saveSettings() {
   localStorage.setItem("ngb_settings", JSON.stringify({audio: audioOn, voice: voiceOn, shake: shakeOn}));
 }
 
-canvas.addEventListener("mousemove", e => {
-  mouse.x = e.clientX; mouse.y = e.clientY; padAim.active = false;
-});
-canvas.addEventListener("mousedown", e => {
-  if (e.button === 0) { mouse.down = true; mouse.justDown = true; initAudio(); }
-});
-addEventListener("mouseup", e => {
-  if (e.button === 0) { mouse.down = false; mouse.justUp = true; }
-});
 canvas.addEventListener("contextmenu", e => e.preventDefault());
+
+function setPointer(e) {
+  const r = canvas.getBoundingClientRect();
+  mouse.x = e.clientX - r.left;
+  mouse.y = e.clientY - r.top;
+  padAim.active = false;
+}
+canvas.addEventListener("pointerdown", e => {
+  if (e.button !== undefined && e.button !== 0) return;
+  try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+  setPointer(e);
+  mouse.down = true; mouse.justDown = true;
+  initAudio();
+  e.preventDefault();
+}, {passive: false});
+canvas.addEventListener("pointermove", e => {
+  setPointer(e);
+  if (e.pointerType === "touch" || e.pointerType === "pen") e.preventDefault();
+}, {passive: false});
+function endPointer(e) {
+  setPointer(e);
+  if (mouse.down) { mouse.down = false; mouse.justUp = true; }
+}
+canvas.addEventListener("pointerup", endPointer);
+canvas.addEventListener("pointercancel", endPointer);
 addEventListener("keydown", e => {
   const k = (e.key || e.code || "").toLowerCase();
   if (!k) return;
@@ -260,10 +306,11 @@ addEventListener("keydown", e => {
 
 ui.play.onclick = () => {
   started = true; document.body.classList.add("playing");
-  camY = player.y - H * .61; camZoom = 1;
+  camY = player.y - viewH() * .61; camZoom = 1;
   ui.start.classList.add("hidden"); initAudio(); startAmbience();
   ui.landmark.textContent = "EL MUELLE"; ui.landmark.classList.add("show"); landmarkTimer = 4;
   say("Arriba hay una campana. Vos tenés un ancla. Parece suficiente.", 4.5, true);
+  syncChrome();
 };
 ui.again.onclick = () => reset();
 ui.resume.onclick = () => togglePause(false);
@@ -271,6 +318,7 @@ ui.retry.onclick = () => { togglePause(false); reset(); };
 ui.optAudio.onchange = () => setAudio(ui.optAudio.checked);
 ui.optVoice.onchange = () => setVoice(ui.optVoice.checked);
 ui.optShake.onchange = () => { shakeOn = ui.optShake.checked; saveSettings(); };
+if (ui.pauseBtn) ui.pauseBtn.onclick = () => { if (started && !won) togglePause(); };
 
 function setAudio(v) {
   audioOn = v; ui.optAudio.checked = v; saveSettings();
@@ -288,6 +336,7 @@ function togglePause(force) {
     const t = formatTime(elapsed);
     ui.pauseStats.textContent = `Altura ${altitude()} m · mejor ${bestAlt} m · ${t} · caídas graves ${recoveries}`;
   }
+  syncChrome();
 }
 
 let actx = null, drone = null, drone2 = null, windGain = null, droneGain = null, noiseSrc = null;
@@ -676,7 +725,7 @@ function updateNarration(dt) {
     const t = formatTime(elapsed);
     ui.winStats.textContent = `Altura: ${a} m · Tiempo: ${t} · Caída más larga: ${Math.round(biggestFall)} m`;
     say("No había nada arriba. Pero ahora sabés que podías hacerlo.", 5, true);
-    setTimeout(() => ui.win.classList.remove("hidden"), 1100);
+    setTimeout(() => { ui.win.classList.remove("hidden"); syncChrome(); }, 1100);
   }
 }
 
@@ -710,10 +759,11 @@ function update(dt) {
   camZoom += (targetZoom - camZoom) * (1 - Math.pow(.02, dt));
 
   const look = falling ? 0.38 : 0.61;
-  const target = player.y - H * look;
+  const vh = viewH();
+  const target = player.y - vh * look;
   const follow = falling ? (1 - Math.pow(.00005, dt)) : (1 - Math.pow(.0008, dt));
   camY += (target - camY) * follow;
-  camY = clamp(camY, 0, WORLD_H - H);
+  camY = clamp(camY, 0, Math.max(0, WORLD_H - vh));
 
   const a = altitude(), z = currentZone(a);
   ui.altitude.textContent = a + " m";
@@ -721,9 +771,10 @@ function update(dt) {
   ui.zone.textContent = z.name;
   ui.timer.textContent = formatTime(elapsed);
   if (hasWonOnce) ui.timerWrap.classList.remove("hidden");
+  const touch = document.body.classList.contains("mobile");
   ui.hint.textContent = anchor.attached
-    ? "CLAVADA · mouse para palanca · mouse al ancla para recoger"
-    : (mouse.down ? "BUSCANDO AGARRE…" : "mové el ancla · click al tocar metal");
+    ? (touch ? "CLAVADA · deslizá para palanca · dedo al ancla para recoger" : "CLAVADA · mouse para palanca · mouse al ancla para recoger")
+    : (mouse.down ? "BUSCANDO AGARRE…" : (touch ? "el ancla sigue el dedo · mantené al tocar metal" : "mové el ancla · click al tocar metal"));
 
   if (wasFalling) {
     const drop = Math.max(0, fallStartAlt - a);
@@ -734,8 +785,6 @@ function update(dt) {
     }
   }
 }
-
-function ox() { return (W - WORLD_W) * .5; }
 
 function drawBackground() {
   const a = started ? altitude() : Math.max(0, Math.round((START_Y - (camY + H*.5)) / PX_PER_M));
@@ -798,9 +847,7 @@ function roundRect(x, y, w, h, r) {
 }
 
 function drawSilhouettes() {
-  const x0 = ox();
   ctx.save();
-  ctx.translate(x0, -camY);
 
   // shaft walls — the tower you climb inside
   const wallL = ctx.createLinearGradient(-80, 0, 70, 0);
@@ -1118,9 +1165,7 @@ function drawAnchor() {
 }
 
 function drawWorld() {
-  const x0 = ox();
   ctx.save();
-  ctx.translate(x0, -camY);
 
   if (bestAlt > 0) {
     const by = START_Y - bestAlt * PX_PER_M;
@@ -1132,7 +1177,7 @@ function drawWorld() {
   }
 
   for (const p of platforms) {
-    if (p.y + p.h < camY - 90 || p.y > camY + H + 90) continue;
+    if (p.y + p.h < camY - 90 || p.y > camY + viewH() + 90) continue;
     if (p.type === "glass") {
       ctx.fillStyle = "rgba(155,205,225,.16)"; ctx.strokeStyle = "rgba(200,235,245,.5)";
       ctx.fillRect(p.x, p.y, p.w, p.h); ctx.strokeRect(p.x+.5, p.y+.5, p.w-1, p.h-1);
@@ -1246,12 +1291,13 @@ function render() {
     ctx.translate((Math.random()-.5)*shake, (Math.random()-.5)*shake);
     shake *= .88; if (shake < .1) shake = 0;
   }
-  if (started) {
-    ctx.translate(W/2, H/2); ctx.scale(camZoom, camZoom); ctx.translate(-W/2, -H/2);
-  }
   drawBackground();
+  const s = cameraScale();
+  ctx.translate(W * .5, 0);
+  ctx.scale(s, s);
+  ctx.translate(-WORLD_W * .5, -camY);
   drawSilhouettes();
-  if (!started || started) drawWorld();
+  drawWorld();
   ctx.restore();
 }
 
@@ -1259,8 +1305,9 @@ function loop(t) {
   const dt = Math.min(.028, (t-last)/1000 || .016); last = t;
   if (!started) {
     titleT += dt;
+    const vh = viewH();
     const span = START_Y - 180;
-    camY = clamp(START_Y - H*.45 - ((titleT * 36) % span), 0, WORLD_H - H);
+    camY = clamp(START_Y - vh*.45 - ((titleT * 36) % span), 0, Math.max(0, WORLD_H - vh));
   }
   update(dt); render();
   requestAnimationFrame(loop);
@@ -1269,4 +1316,5 @@ requestAnimationFrame(loop);
 resetChain();
 ui.best.textContent = bestAlt + " m";
 if (hasWonOnce) ui.timerWrap.classList.remove("hidden");
+syncChrome();
 })();
